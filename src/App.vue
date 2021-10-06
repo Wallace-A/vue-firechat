@@ -20,11 +20,23 @@
       <h1>Welcome, {{ state.username}}</h1>
     </header>
     <section class="chat-box">
-      //mESSAGES
+      <div 
+      v-for="message in state.messages" 
+      :key="message.key" 
+      :class="(message.username == state.username ? 'message current-user':
+      'message')">
+      <div class="message-inner">
+        <div class="username">{{ message.username}}</div>
+        <div class="content">{{ message.content}}</div>
+      </div>
+      </div>
     </section>
     <footer>
-      <form v-on:submit.prevent="">
-        <input type="text" placeholder="Write a message...">
+      <form v-on:submit.prevent="SendMessage">
+        <input 
+        type="text" 
+        v-model="inputMessage"
+        placeholder="Write a message...">
         <input type="submit" value="Send">
       </form>
     </footer>
@@ -40,6 +52,7 @@ export default {
   setup () {
     //ref is usually used for form inputs
     const inputUsername = ref("");
+    const inputMessage = ref("");
     
     const state = reactive({
       username: "",
@@ -51,11 +64,51 @@ export default {
         inputUsername.value = "";
       }
     }
+    const SendMessage = () => {
+      //reference to collection in db
+      const messagesRef = db.database().ref("messages");
+      //return if null
+      if(inputMessage.value === "" || inputMessage.value === null) {
+        return
+      }
 
+      const message = {
+        username: state.username,
+        content: inputMessage.value
+      }
+
+      //push message to db
+      messagesRef.push(message);
+      //clear input
+      inputMessage.value = "";
+    }
+
+    onMounted(() => {
+      //reference to collection in db
+      const messagesRef = db.database().ref("messages");
+      //check if messages has changed
+      messagesRef.on("value", snapshot => {
+        //take a snapshot of messages collection
+        const data = snapshot.val();
+        let messages = [];
+
+        Object.keys(data).forEach(key => {
+          messages.push({
+            id:key,
+            username: data[key].username,
+            content: data[key].content
+          })
+        })
+        //update state object with messages from collection
+        state.messages = messages;
+      })
+    })
     return {
       inputUsername,
+      inputMessage,   
       Login,
-      state
+      state,
+      SendMessage
     };
   }
 }
