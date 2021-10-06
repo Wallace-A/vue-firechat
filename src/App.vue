@@ -19,6 +19,15 @@
       <button class="logout">Logout</button>
       <h1>Welcome, {{ state.username}}</h1>
     </header>
+    <section class="chat-box">
+      //mESSAGES
+    </section>
+    <footer>
+      <form v-on:submit.prevent="">
+        <input type="text" placeholder="Write a message...">
+        <input type="submit" value="Send">
+      </form>
+    </footer>
   </div>
 </template>
 
